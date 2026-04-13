@@ -106,10 +106,10 @@ class BraiinsAPI:
         results = await asyncio.gather(
             self._make_get_request("miner/hw/hashboards"),
             self._make_get_request("miner/stats"),
-            self._make_get_request("performance/power-target"),
+            self._make_get_request("performance/mode"),
         )
 
-        hashboard_data, stats_data, power_target_data = results
+        hashboard_data, stats_data, performance_mode_data = results
 
         if not hashboard_data and not stats_data:
             raise UpdateFailed("Failed to fetch any data from the miner.")
@@ -119,8 +119,17 @@ class BraiinsAPI:
             combined_data.update(hashboard_data)
         if stats_data:
             combined_data.update(stats_data)
-        if power_target_data:
-            combined_data["power_target"] = power_target_data
+        if performance_mode_data:
+            watt = (
+                performance_mode_data
+                .get("tunermode", {})
+                .get("target", {})
+                .get("powertarget", {})
+                .get("power_target", {})
+                .get("watt")
+            )
+            if watt is not None:
+                combined_data["power_target"] = {"watt": watt}
 
         return combined_data
 
