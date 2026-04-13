@@ -14,9 +14,10 @@ This is a custom integration for Home Assistant that allows you to control and m
     -   Real-time power consumption (W) and energy efficiency (J/TH).
     -   Highest chip and board temperatures.
     -   Per-hashboard hashrate, chip temperature, and board temperature.
--   **Simple Controls**: Provides button entities to perform key actions:
+-   **Simple Controls**: Provides button and number entities to perform key actions:
     -   Pause and Resume mining operations.
-    -   Increment and Decrement the power target.
+    -   Increment and Decrement the power target in 250W steps.
+    -   Read and set the power target to a specific wattage.
 -   **Robust Authentication**: Automatically handles the renewal of authentication tokens to ensure the connection is always active.
 
 
@@ -72,12 +73,22 @@ The integration creates a single device representing your miner, with the follow
 
 ### Controls
 
-| Entity ID                       | Description                             | Icon                 |
-| ------------------------------- | --------------------------------------- | -------------------- |
-| `button.increment_power_target` | Increases the power target by 250W.     | `mdi:arrow-up-bold`  |
-| `button.decrement_power_target` | Decreases the power target by 250W.     | `mdi:arrow-down-bold`|
-| `button.pause_miner`            | Pauses the mining operation.            | `mdi:pause`          |
-| `button.resume_miner`           | Resumes the mining operation.           | `mdi:play`           |
+#### Buttons
+
+| Entity ID                       | Description                             | Icon                  |
+| ------------------------------- | --------------------------------------- | --------------------- |
+| `button.increment_power_target` | Increases the power target by 250W.     | `mdi:arrow-up-bold`   |
+| `button.decrement_power_target` | Decreases the power target by 250W.     | `mdi:arrow-down-bold` |
+| `button.pause_miner`            | Pauses the mining operation.            | `mdi:pause`           |
+| `button.resume_miner`           | Resumes the mining operation.           | `mdi:play`            |
+
+#### Number
+
+| Entity ID                  | Description                                                                 | Unit | Icon                   |
+| -------------------------- | --------------------------------------------------------------------------- | ---- | ---------------------- |
+| `number.power_target`      | Displays the current power target and allows setting it to a specific value. | W    | `mdi:lightning-bolt`   |
+
+The **Power Target** number entity shows the live power target (updated every 5 seconds) and accepts any whole-watt value between 0 W and 10,000 W. Enter a value in the box and confirm to apply it immediately. The increment/decrement buttons remain available for quick 250W adjustments.
 
 ### Sensors
 
