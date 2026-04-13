@@ -105,11 +105,12 @@ class BraiinsAPI:
         """Fetch data from all endpoints and combine them. Raise UpdateFailed only if all fail."""
         results = await asyncio.gather(
             self._make_get_request("miner/hw/hashboards"),
-            self._make_get_request("miner/stats")
+            self._make_get_request("miner/stats"),
+            self._make_get_request("performance/power-target"),
         )
-        
-        hashboard_data, stats_data = results
-        
+
+        hashboard_data, stats_data, power_target_data = results
+
         if not hashboard_data and not stats_data:
             raise UpdateFailed("Failed to fetch any data from the miner.")
 
@@ -118,6 +119,8 @@ class BraiinsAPI:
             combined_data.update(hashboard_data)
         if stats_data:
             combined_data.update(stats_data)
+        if power_target_data:
+            combined_data["power_target"] = power_target_data
 
         return combined_data
 
@@ -168,6 +171,9 @@ class BraiinsAPI:
 
     async def decrement_power_target(self, value: int = 250) -> bool:
         return await self._make_request("patch", "performance/power-target/decrement", {"watt": value})
+
+    async def set_power_target(self, watt: int) -> bool:
+        return await self._make_request("put", "performance/power-target", {"watt": watt})
 
     async def pause_mining(self) -> bool:
         return await self._make_request("put", "actions/pause")
