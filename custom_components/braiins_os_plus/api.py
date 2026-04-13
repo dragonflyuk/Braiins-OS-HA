@@ -182,7 +182,18 @@ class BraiinsAPI:
         return await self._make_request("patch", "performance/power-target/decrement", {"watt": value})
 
     async def set_power_target(self, watt: int) -> bool:
-        return await self._make_request("put", "performance/power-target", {"watt": watt})
+        data = {
+            "tunermode": {
+                "target": {
+                    "powertarget": {
+                        "power_target": {
+                            "watt": watt
+                        }
+                    }
+                }
+            }
+        }
+        return await self._make_request("put", "performance/mode", data)
 
     async def pause_mining(self) -> bool:
         return await self._make_request("put", "actions/pause")
