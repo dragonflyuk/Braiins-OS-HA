@@ -3,10 +3,10 @@
   "name": "Braiins OS+",
   "version": "0.3.0",
   "config_flow": true,
-  "documentation": "https://github.com/aleixps/Braiins-OS-HA",
-  "issue_tracker": "https://github.com/aleixps/Braiins-OS-HA/issues",
+  "documentation": "https://github.com/dragonflyuk/Braiins-OS-HA",
+  "issue_tracker": "https://github.com/dragonflyuk/Braiins-OS-HA/issues",
   "requirements": [],
-  "codeowners": ["@aleixps"],
+  "codeowners": ["@aleixps", "@dragonflyuk"],
   "iot_class": "local_polling",
   "homeassistant": "2023.11.0"
 }
