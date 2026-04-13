@@ -2,7 +2,7 @@
 
 import logging
 
-from homeassistant.components.number import NumberEntity, NumberMode
+from homeassistant.components.number import NumberMode, RestoreNumber
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfPower
 from homeassistant.core import HomeAssistant
@@ -27,7 +27,7 @@ async def async_setup_entry(
     async_add_entities([PowerTargetNumber(coordinator, api, config_entry)])
 
 
-class PowerTargetNumber(CoordinatorEntity, NumberEntity):
+class PowerTargetNumber(CoordinatorEntity, RestoreNumber):
     """Number entity to read and set the miner's power target."""
 
     _attr_name = "Power Target"
@@ -44,6 +44,14 @@ class PowerTargetNumber(CoordinatorEntity, NumberEntity):
         self._api = api
         self._config_entry = config_entry
         self._attr_unique_id = f"{config_entry.entry_id}_power_target"
+        self._cached_value: float | None = None
+
+    async def async_added_to_hass(self) -> None:
+        """Restore the last known value when HA starts."""
+        await super().async_added_to_hass()
+        if (last_data := await self.async_get_last_number_data()) is not None:
+            self._cached_value = last_data.native_value
+            _LOGGER.debug("Restored power target value: %s W", self._cached_value)
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -60,12 +68,19 @@ class PowerTargetNumber(CoordinatorEntity, NumberEntity):
 
     @property
     def native_value(self) -> float | None:
-        """Return the current power target in watts."""
+        """Return the current power target in watts.
+
+        Prefers the live value from the coordinator; falls back to the
+        last value set by the user so the entity is never blank.
+        """
         if self.coordinator.data and (power_target := self.coordinator.data.get("power_target")):
-            return power_target.get("watt")
-        return None
+            if (watt := power_target.get("watt")) is not None:
+                return watt
+        return self._cached_value
 
     async def async_set_native_value(self, value: float) -> None:
         """Set the power target to a specific wattage."""
         if await self._api.set_power_target(int(value)):
+            self._cached_value = value
+            self.async_write_ha_state()
             await self.coordinator.async_request_refresh()
