@@ -1,7 +1,7 @@
 # Braiins OS+ Integration for Home Assistant
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/)
-[![Project Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/aleixps/Braiins-OS-HA)
+[![Project Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/dragonflyuk/Braiins-OS-HA)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 This is a custom integration for Home Assistant that allows you to control and monitor your cryptocurrency miners running **Braiins OS+**. It connects directly to your miner's local API, providing controls and sensors within your Home Assistant dashboard.
@@ -37,7 +37,7 @@ This integration is best installed via HACS.
 2.  Go to "Integrations", then click the three-dots menu in the top right and select **"Custom repositories"**.
 3.  Paste the following URL into the "Repository" field:
     ```
-    https://github.com/aleixps/Braiins-OS-HA
+    https://github.com/dragonflyuk/Braiins-OS-HA
     ```
 4.  Select **"Integration"** as the category.
 5.  Click **"Add"**.
@@ -46,7 +46,7 @@ This integration is best installed via HACS.
 
 ### Manual Installation
 
-1.  Go to the [latest release](https://github.com/aleixps/Braiins-OS-HA/releases/latest) page of this repository.
+1.  Go to the [latest release](https://github.com/dragonflyuk/Braiins-OS-HA/releases/latest) page of this repository.
 2.  Download the `braiins_os_plus.zip` file.
 3.  Unzip the file.
 4.  Copy the `braiins_os_plus` directory into your Home Assistant `config/custom_components/` directory.
@@ -138,7 +138,7 @@ This integration is powered by the official Braiins OS+ API. You can find the do
 
 ## Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/aleixps/Braiins-OS-HA/issues) to see if your issue or idea has already been discussed.
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/dragonflyuk/Braiins-OS-HA/issues) to see if your issue or idea has already been discussed.
 
 ## License
 
