@@ -42,6 +42,13 @@ async def async_setup_entry(
                     HashboardBoardTempSensor(coordinator, board_id),
                     HashboardHashrateSensor(coordinator, board_id),
                 ])
+
+    # Create a sensor for each fan
+    if coordinator.data and "cooling" in coordinator.data:
+        for fan in coordinator.data.get("cooling", {}).get("fans", []):
+            position = fan.get("position")
+            if position is not None:
+                sensors.append(FanRPMSensor(coordinator, position))
     
     # Create aggregate and stats sensors
     sensors.extend([
@@ -249,4 +256,26 @@ class HashboardHashrateSensor(HashboardSensor):
                 if (last_5s := real_hash.get("last_5s")):
                     if (hashrate_ghs := last_5s.get("gigahash_per_second")) is not None:
                         return round(hashrate_ghs / 1000, 2)
+        return None
+
+
+# --- Fan Sensors ---
+
+class FanRPMSensor(BraiinsSensor):
+    """Sensor for a single fan's speed in RPM."""
+    def __init__(self, coordinator, position: int):
+        super().__init__(coordinator, f"fan_{position}_rpm")
+        self._position = position
+        self._attr_name = f"Fan {position} RPM"
+        self._attr_native_unit_of_measurement = "RPM"
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:fan"
+
+    @property
+    def native_value(self) -> int | None:
+        """Return the fan speed in RPM."""
+        if self.coordinator.data and (cooling := self.coordinator.data.get("cooling")):
+            for fan in cooling.get("fans", []):
+                if fan.get("position") == self._position:
+                    return fan.get("rpm")
         return None

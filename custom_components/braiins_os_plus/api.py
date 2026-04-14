@@ -107,9 +107,10 @@ class BraiinsAPI:
             self._make_get_request("miner/hw/hashboards"),
             self._make_get_request("miner/stats"),
             self._make_get_request("performance/mode"),
+            self._make_get_request("cooling/state"),
         )
 
-        hashboard_data, stats_data, performance_mode_data = results
+        hashboard_data, stats_data, performance_mode_data, cooling_data = results
 
         if not hashboard_data and not stats_data:
             raise UpdateFailed("Failed to fetch any data from the miner.")
@@ -130,6 +131,8 @@ class BraiinsAPI:
             )
             if watt is not None:
                 combined_data["power_target"] = {"watt": watt}
+        if cooling_data:
+            combined_data["cooling"] = cooling_data
 
         return combined_data
 
