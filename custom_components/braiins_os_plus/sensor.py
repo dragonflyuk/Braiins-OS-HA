@@ -57,6 +57,7 @@ async def async_setup_entry(
         HighestBoardTempSensor(coordinator),
         MinerConsumptionSensor(coordinator),
         MinerEfficiencySensor(coordinator),
+        AverageFanRPMSensor(coordinator),
     ])
 
     async_add_entities(sensors)
@@ -260,6 +261,29 @@ class HashboardHashrateSensor(HashboardSensor):
 
 
 # --- Fan Sensors ---
+
+class AverageFanRPMSensor(BraiinsSensor):
+    """Sensor for the average RPM across all fans."""
+    def __init__(self, coordinator):
+        super().__init__(coordinator, "average_fan_rpm")
+        self._attr_name = "Average Fan RPM"
+        self._attr_native_unit_of_measurement = "RPM"
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:fan"
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the average RPM across all fans."""
+        if self.coordinator.data and (cooling := self.coordinator.data.get("cooling")):
+            rpms = [
+                fan.get("rpm") for fan in cooling.get("fans", [])
+                if fan.get("rpm") is not None
+            ]
+            if rpms:
+                return round(sum(rpms) / len(rpms), 1)
+        return None
+
+
 
 class FanRPMSensor(BraiinsSensor):
     """Sensor for a single fan's speed in RPM."""
