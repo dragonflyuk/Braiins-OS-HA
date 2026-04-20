@@ -14,6 +14,7 @@ This is a custom integration for Home Assistant that allows you to control and m
     -   Real-time power consumption (W) and energy efficiency (J/TH).
     -   Highest chip and board temperatures.
     -   Per-hashboard hashrate, chip temperature, and board temperature.
+    -   Per-fan RPM and average fan RPM across all fans.
 -   **Simple Controls**: Provides button and number entities to perform key actions:
     -   Pause and Resume mining operations.
     -   Increment and Decrement the power target in 250W steps.
@@ -47,9 +48,9 @@ This integration is best installed via HACS.
 ### Manual Installation
 
 1.  Go to the [latest release](https://github.com/dragonflyuk/Braiins-OS-HA/releases/latest) page of this repository.
-2.  Download the `braiins_os_plus.zip` file.
+2.  Download the source code zip.
 3.  Unzip the file.
-4.  Copy the `braiins_os_plus` directory into your Home Assistant `config/custom_components/` directory.
+4.  Copy the `custom_components/braiins_os_plus` directory into your Home Assistant `config/custom_components/` directory.
 5.  Restart Home Assistant.
 
 ## Configuration
@@ -115,6 +116,15 @@ The following sensors are created for **each** hashboard detected by the miner. 
 | `sensor.hashboard_n_hashrate`       | The real-time hashrate for this specific board.   | TH/s |
 | `sensor.hashboard_n_chip_temp`      | Highest chip temperature for this specific board. | °C   |
 | `sensor.hashboard_n_board_temp`     | The surface temperature of this specific board.   | °C   |
+
+#### Fan Sensors
+
+| Entity ID                   | Description                                              | Unit |
+| --------------------------- | -------------------------------------------------------- | ---- |
+| `sensor.average_fan_rpm`    | Average RPM across all fans.                             | RPM  |
+| `sensor.fan_n_rpm`          | Speed of an individual fan (one sensor per fan detected).| RPM  |
+
+Fan sensors are created dynamically — one `sensor.fan_n_rpm` entity is created for each fan reported by the miner (e.g., `sensor.fan_0_rpm`, `sensor.fan_1_rpm`).
 
 ### Creating an Energy Sensor (kWh)
 
