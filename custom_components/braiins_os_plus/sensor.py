@@ -16,6 +16,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
+from .efficiency_tracker import PowerEfficiencyTracker
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,8 +29,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Braiins OS+ sensors from a config entry."""
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
-    
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = entry_data["coordinator"]
+    tracker: PowerEfficiencyTracker = entry_data["tracker"]
+
     sensors = []
 
     # Create sensors for each hashboard if data is available on first load
@@ -49,7 +52,7 @@ async def async_setup_entry(
             position = fan.get("position")
             if position is not None:
                 sensors.append(FanRPMSensor(coordinator, position))
-    
+
     # Create aggregate and stats sensors
     sensors.extend([
         TotalHashrateSensor(coordinator),
@@ -58,6 +61,13 @@ async def async_setup_entry(
         MinerConsumptionSensor(coordinator),
         MinerEfficiencySensor(coordinator),
         AverageFanRPMSensor(coordinator),
+    ])
+
+    # Create efficiency optimisation sensors
+    sensors.extend([
+        BestPowerTargetSensor(coordinator, tracker),
+        BestEfficiencySensor(coordinator, tracker),
+        EfficiencyProfileSensor(coordinator, tracker),
     ])
 
     async_add_entities(sensors)
@@ -303,3 +313,57 @@ class FanRPMSensor(BraiinsSensor):
                 if fan.get("position") == self._position:
                     return fan.get("rpm")
         return None
+
+
+# --- Efficiency Optimisation Sensors ---
+
+class BestPowerTargetSensor(BraiinsSensor):
+    """The power target (W) that produced the best average efficiency so far."""
+
+    def __init__(self, coordinator, tracker):
+        super().__init__(coordinator, "best_power_target")
+        self._tracker = tracker
+        self._attr_name = "Best Power Target"
+        self._attr_device_class = SensorDeviceClass.POWER
+        self._attr_native_unit_of_measurement = UnitOfPower.WATT
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:trophy"
+
+    @property
+    def native_value(self) -> int | None:
+        return self._tracker.get_best_power_target()
+
+
+class BestEfficiencySensor(BraiinsSensor):
+    """The best average efficiency (J/TH) recorded across all profiled power targets."""
+
+    def __init__(self, coordinator, tracker):
+        super().__init__(coordinator, "best_efficiency")
+        self._tracker = tracker
+        self._attr_name = "Best Recorded Efficiency"
+        self._attr_native_unit_of_measurement = JOULE_PER_TERAHASH
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:trophy-outline"
+
+    @property
+    def native_value(self) -> float | None:
+        return self._tracker.get_best_efficiency()
+
+
+class EfficiencyProfileSensor(BraiinsSensor):
+    """Number of power levels with enough data to trust, plus full profile as attributes."""
+
+    def __init__(self, coordinator, tracker):
+        super().__init__(coordinator, "efficiency_profile")
+        self._tracker = tracker
+        self._attr_name = "Efficiency Profile"
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_icon = "mdi:chart-line"
+
+    @property
+    def native_value(self) -> int:
+        return self._tracker.get_sampled_level_count()
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        return {"power_levels": self._tracker.get_all_readings()}
