@@ -37,14 +37,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         data = coordinator.data
         if not data:
             return
+        power_stats = data.get("power_stats") or {}
         power_target = (data.get("power_target") or {}).get("watt")
-        efficiency = (data.get("power_stats") or {}).get("efficiency", {}).get("joule_per_terahash")
+        actual_consumption = (power_stats.get("approximated_consumption") or {}).get("watt")
+        efficiency = (power_stats.get("efficiency") or {}).get("joule_per_terahash")
         total_ghs = sum(
             board.get("stats", {}).get("real_hashrate", {}).get("last_5s", {}).get("gigahash_per_second", 0)
             for board in (data.get("hashboards") or [])
         )
         hashrate_ths = total_ghs / 1000 if total_ghs > 0 else None
-        tracker.update(power_target, efficiency, hashrate_ths)
+        tracker.update(power_target, actual_consumption, efficiency, hashrate_ths)
 
     # Register before first refresh so the tracker is fed from the very first poll.
     coordinator.async_add_listener(_update_tracker)

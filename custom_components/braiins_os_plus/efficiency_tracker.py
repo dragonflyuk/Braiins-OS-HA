@@ -57,17 +57,20 @@ class PowerEfficiencyTracker:
     def update(
         self,
         power_target_watt: int | None,
+        actual_consumption_watt: int | None,
         efficiency_jth: float | None,
         hashrate_ths: float | None,
     ) -> None:
         """Record a new data point.
 
         Call this on every coordinator update.  The tracker silently ignores
-        readings during the stabilisation period after a power target change.
+        readings during the stabilisation period after a power target change,
+        and any reading where actual consumption is more than 10% away from
+        the target (i.e. the hardware is still adjusting).
         """
-        if power_target_watt is None or efficiency_jth is None or hashrate_ths is None:
+        if power_target_watt is None or actual_consumption_watt is None or efficiency_jth is None or hashrate_ths is None:
             return
-        if efficiency_jth <= 0 or hashrate_ths <= 0:
+        if efficiency_jth <= 0 or hashrate_ths <= 0 or power_target_watt <= 0:
             return
 
         if power_target_watt != self._last_power_target:
@@ -77,6 +80,9 @@ class PowerEfficiencyTracker:
             self._stable_count += 1
 
         if self._stable_count < MIN_STABLE_READINGS:
+            return
+
+        if abs(actual_consumption_watt - power_target_watt) / power_target_watt > 0.10:
             return
 
         key = str(power_target_watt)
