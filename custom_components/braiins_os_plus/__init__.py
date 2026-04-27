@@ -37,10 +37,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         data = coordinator.data
         if not data:
             return
-        power_stats = data.get("power_stats") or {}
-        power_target = (data.get("power_target") or {}).get("watt")
-        actual_consumption = (power_stats.get("approximated_consumption") or {}).get("watt")
-        efficiency = (power_stats.get("efficiency") or {}).get("joule_per_terahash")
+        def _safe_get(obj, *keys):
+            for key in keys:
+                if not isinstance(obj, dict):
+                    return None
+                obj = obj.get(key)
+            return obj
+
+        power_stats = data.get("power_stats")
+        power_target = _safe_get(data, "power_target", "watt")
+        actual_consumption = _safe_get(power_stats, "approximated_consumption", "watt")
+        efficiency = _safe_get(power_stats, "efficiency", "joule_per_terahash")
         total_ghs = sum(
             board.get("stats", {}).get("real_hashrate", {}).get("last_5s", {}).get("gigahash_per_second", 0)
             for board in (data.get("hashboards") or [])
