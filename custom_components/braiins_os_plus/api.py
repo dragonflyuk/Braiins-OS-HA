@@ -134,6 +134,7 @@ class BraiinsAPI:
         if cooling_data:
             combined_data["cooling"] = cooling_data
 
+        combined_data["last_success_time"] = time.time()
         return combined_data
 
     async def _make_request(self, method: str, endpoint: str, data: dict | None = None) -> bool:

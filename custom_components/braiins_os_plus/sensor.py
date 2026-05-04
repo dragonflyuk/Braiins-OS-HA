@@ -1,6 +1,7 @@
 # custom_components/braiins_os_plus/sensor.py
 
 import logging
+import time
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -147,6 +148,8 @@ class TotalHashrateSensor(BraiinsSensor):
     def native_value(self) -> float | None:
         """Return the total hashrate in TH/s."""
         if self.coordinator.data and (hashboards := self.coordinator.data.get("hashboards")):
+            if time.time() - self.coordinator.data.get("last_success_time", 0) > 180:
+                return 0.0
             total_ghs = sum(
                 board.get("stats", {}).get("real_hashrate", {}).get("last_5s", {}).get("gigahash_per_second", 0)
                 for board in hashboards
@@ -262,6 +265,8 @@ class HashboardHashrateSensor(HashboardSensor):
     @property
     def native_value(self) -> float | None:
         """Return the hashrate in TH/s."""
+        if self.coordinator.data and time.time() - self.coordinator.data.get("last_success_time", 0) > 180:
+            return 0.0
         if self.board_data and (stats := self.board_data.get("stats")):
             if (real_hash := stats.get("real_hashrate")):
                 if (last_5s := real_hash.get("last_5s")):
